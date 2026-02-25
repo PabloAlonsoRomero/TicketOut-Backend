@@ -4,7 +4,7 @@
 ---
 
 ## 📌 Nombre del Proyecto
-** TicketsOut - Sistema de Gestión de Tickets **
+**TicketsOut - Sistema de Gestión de Tickets**
 
 ---
 
