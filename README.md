@@ -10,7 +10,7 @@
 
 ## 👥 Integrantes
 - José de Jesús Almanza Contreras -> Product Owner
-- Pablo Emilio Alonso Romero -> Scrum Master
+- Pablo Emilio Alonso Romero -> Scrum Master y Documentador
 - Josué Amador Ynfante -> Development Team
 - Victor Hassiel Avila Monjaraz -> Development Team
 - Leonardo Gael Durán Torres -> Development Team
