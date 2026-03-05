@@ -7,12 +7,113 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  SUPERUSER
+  ADMIN
+  USER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum EventType {
+  TICKET_CREATED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  CATEGORY_CHANGED
+  ASSIGNED
+  COMMENT_ADDED
+  TICKET_CLOSED
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  isActive  Boolean  @default(true)
+  id            Int             @id @default(autoincrement())
+  username      String          @unique @db.VarChar(50)
+  email         String          @unique @db.VarChar(255)
+  name          String          @db.VarChar(100)
+  passwordHash  String          @db.VarChar(255)
+  role          Role            @default(USER)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  refreshTokens RefreshToken[]
+  createdTickets Ticket[] @relation("CreatedTickets")
+  assignedTickets Ticket[] @relation("AssignedTickets")
+  comments      Comment[]
+  events        TicketEvent[]
+}
+
+model RefreshToken {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  tokenHash        String   @unique @db.VarChar(255)
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  replacedByTokenId Int?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Ticket {
+  id            Int            @id @default(autoincrement())
+  title         String         @db.VarChar(120)
+  description   String         @db.Text
+  status        TicketStatus   @default(OPEN)
+  priority      TicketPriority @default(MEDIUM)
+  category      String         @default("GENERAL") @db.VarChar(50)
+  createdById   Int
+  assignedToId  Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  closedAt      DateTime?
+
+  createdBy User @relation("CreatedTickets", fields: [createdById], references: [id], onDelete: Restrict)
+  assignedTo User? @relation("AssignedTickets", fields: [assignedToId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  events    TicketEvent[]
+
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model Comment {
+  id        Int     @id @default(autoincrement())
+  body      String  @db.Text
+  isInternal Boolean @default(false)
+  ticketId  Int
+  authorId  Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+}
+
+model TicketEvent {
+  id           Int     @id @default(autoincrement())
+  type         EventType
+  payloadJson  Json
+  ticketId     Int
+  actorId      Int
+  createdAt    DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor  User   @relation(fields: [actorId], references: [id], onDelete: Restrict)
 }
