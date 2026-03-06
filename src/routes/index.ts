@@ -5,7 +5,6 @@ export const router = Router();
 
 // Aquí se registrarán las rutas de cada módulo
 // Ejemplo:
-// import { authRoutes } from './auth.routes';
-// import { ticketRoutes } from './ticket.routes';
-// router.use('/auth', authRoutes);
-// router.use('/tickets', ticketRoutes);
+import authRoutes from './auth';
+
+router.use('/auth', authRoutes);
