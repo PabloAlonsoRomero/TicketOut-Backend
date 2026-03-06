@@ -1,0 +1,18 @@
+services:
+  # Servicio de Base de Datos (MySQL 8)
+  db:
+    image: mysql:8
+    container_name: ticketsout_db_container
+    restart: unless-stopped # Requerimiento de confiabilidad RNF-REL-03
+    environment:
+      MYSQL_DATABASE: ticketout_dev
+      MYSQL_USER: ticketout
+      MYSQL_PASSWORD: devpass
+      MYSQL_ROOT_PASSWORD: root_secure_password
+    ports:
+      - "3306:3306" # Mapeo de puerto para que Prisma lo detecte
+    volumes:
+      - db_data:/var/lib/mysql # Persistencia de datos
+
+volumes:
+  db_data: # Define el volumen para no perder datos al apagar el contenedo
