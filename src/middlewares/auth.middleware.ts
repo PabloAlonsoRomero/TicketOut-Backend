@@ -33,3 +33,5 @@ export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunct
     res.status(401).json({ error: "No se proporcionó un token de autenticación" });
   }
 };
+
+export const authMiddleware = authenticateJWT;
