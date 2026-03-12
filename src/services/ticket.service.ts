@@ -1,8 +1,8 @@
-import { TicketRepository } from '@/repositories/ticket.repository';
-import { CreateTicketInput, UpdateTicketInput } from '@/validators/ticket.validator';
+import { TicketRepository } from '../repositories/ticket.repository';
+import { CreateTicketInput, UpdateTicketInput } from '../validators/ticket.validator';
 import { PrismaClient, Role } from '@prisma/client';
-import { EventRepository } from '@/repositories/event.repository';
-import { EventType } from '@/models';
+import { EventRepository } from '../repositories/event.repository';
+import { EventType } from '../models';
 
 const prisma = new PrismaClient();
 
@@ -26,7 +26,7 @@ export class TicketService {
   }
 
   // Obtener ticket
-  static async getTicket(id: number, userId: number, role: Role) {
+  static async getTicket(id: number, userId: number, role: string) {
     const ticket = await TicketRepository.findById(id);
 
     if (!ticket) {
@@ -47,7 +47,7 @@ export class TicketService {
     limit: number = 20,
     filters: any,
     userId: number,
-    role: Role
+    role: string
   ) {
     const skip = (page - 1) * limit;
     const take = Math.min(limit, 100);
@@ -83,7 +83,7 @@ export class TicketService {
     id: number,
     data: UpdateTicketInput,
     userId: number,
-    role: Role
+    role: string
   ) {
     const ticket = await TicketRepository.findById(id);
 
@@ -160,7 +160,7 @@ export class TicketService {
     id: number,
     assignedToId: number,
     userId: number,
-    role: Role
+    role: string
   ) {
     const ticket = await TicketRepository.findById(id);
 

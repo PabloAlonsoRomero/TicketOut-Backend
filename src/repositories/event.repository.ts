@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { CreateTicketEventInput } from '@/models';
+import { CreateTicketEventInput } from '../models';
 
 const prisma = new PrismaClient();
 
