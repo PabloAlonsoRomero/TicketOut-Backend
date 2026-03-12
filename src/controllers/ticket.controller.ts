@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
-import { TicketService } from '@/services/ticket.service';
+import { TicketService } from '../services/ticket.service';
 import {
   createTicketValidator,
   updateTicketValidator,
   assignTicketValidator,
-} from '@/validators/ticket.validator';
+} from '../validators/ticket.validator';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 export class TicketController {
-  static async create(req: Request, res: Response) {
+  static async create(req: AuthRequest, res: Response) {
     try {
       const data = createTicketValidator.parse(req.body);
-      const userId = (req as any).userId;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
 
       const ticket = await TicketService.createTicket(data, userId);
       res.status(201).json({ success: true, data: ticket });
@@ -19,11 +23,14 @@ export class TicketController {
     }
   }
 
-  static async getById(req: Request, res: Response) {
+  static async getById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
-      const userId = (req as any).userId;
-      const role = (req as any).role;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
 
       const ticket = await TicketService.getTicket(parseInt(String(id)), userId, role);
       res.json({ success: true, data: ticket });
@@ -33,11 +40,14 @@ export class TicketController {
     }
   }
 
-  static async list(req: Request, res: Response) {
+  static async list(req: AuthRequest, res: Response) {
     try {
       const { page = '1', limit = '20', status, priority, category, search, mine } = req.query;
-      const userId = (req as any).userId;
-      const role = (req as any).role;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
 
       const filters = {
         status: status as string,
@@ -61,12 +71,15 @@ export class TicketController {
     }
   }
 
-  static async update(req: Request, res: Response) {
+  static async update(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       const data = updateTicketValidator.parse(req.body);
-      const userId = (req as any).userId;
-      const role = (req as any).role;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
 
       const ticket = await TicketService.updateTicket(parseInt(String(id)), data, userId, role);
       res.json({ success: true, data: ticket });
@@ -76,12 +89,15 @@ export class TicketController {
     }
   }
 
-  static async assign(req: Request, res: Response) {
+  static async assign(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       const { assignedToId } = assignTicketValidator.parse(req.body);
-      const userId = (req as any).userId;
-      const role = (req as any).role;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
 
       const ticket = await TicketService.assignTicket(parseInt(String(id)), assignedToId, userId, role);
       res.json({ success: true, data: ticket });

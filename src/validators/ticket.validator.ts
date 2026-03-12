@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { TicketStatus, TicketPriority } from '@/models';
 
 export const createTicketValidator = z.object({
   title: z.string().min(3).max(120),

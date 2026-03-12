@@ -1,5 +1,5 @@
-import { PrismaClient, Ticket, TicketStatus, TicketPriority } from '@prisma/client';
-import { CreateTicketInput, UpdateTicketInput } from '@/validators/ticket.validator';
+import { PrismaClient, TicketStatus, TicketPriority } from '@prisma/client';
+import { CreateTicketInput, UpdateTicketInput } from '../validators/ticket.validator';
 
 const prisma = new PrismaClient();
 
