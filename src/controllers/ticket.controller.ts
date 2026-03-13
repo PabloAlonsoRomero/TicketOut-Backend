@@ -106,4 +106,44 @@ export class TicketController {
       res.status(statusCode).json({ success: false, error: error.message });
     }
   }
+
+  static async addComment(req: AuthRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { body, isInternal = false } = req.body;
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
+
+      if (!body) {
+        return res.status(400).json({ success: false, error: 'El cuerpo del comentario es requerido' });
+      }
+
+      const comment = await TicketService.addComment(parseInt(String(id)), body, isInternal, userId, role);
+      res.status(201).json({ success: true, data: comment });
+    } catch (error: any) {
+      const statusCode = error.message.includes('permiso') ? 403 : 400;
+      res.status(statusCode).json({ success: false, error: error.message });
+    }
+  }
+
+  static async getDashboardStats(req: AuthRequest, res: Response) {
+    try {
+      console.log('GET /api/tickets/stats - Solicitado por:', req.user?.email);
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      if (!userId || !role) {
+        return res.status(401).json({ success: false, error: 'No autenticado' });
+      }
+
+      const stats = await TicketService.getStats(userId, role);
+      res.json({ success: true, data: stats });
+    } catch (error: any) {
+      console.error('Error GET /api/tickets/stats:', error.message);
+      const statusCode = error.message.includes('permiso') ? 403 : 500;
+      res.status(statusCode).json({ success: false, error: error.message });
+    }
+  }
 }
