@@ -65,7 +65,7 @@ async function main() {
       status: TicketStatus.RESOLVED,
       priority: TicketPriority.URGENT,
       category: 'Infraestructura',
-      createdById: user.id,
+      createdById: superuser.id,
       assignedToId: admin.id,
     },
   });
@@ -77,8 +77,30 @@ async function main() {
       status: TicketStatus.OPEN,
       priority: TicketPriority.LOW,
       category: 'UI/UX',
-      createdById: user.id,
+      createdById: admin.id,
     },
+  });
+
+  const ticket3 = await prisma.ticket.create({
+    data: {
+      title: 'Pantalla parpadea',
+      description: 'Mi pantalla secundaria parpadea al conectar el HDMI',
+      status: TicketStatus.OPEN,
+      priority: TicketPriority.MEDIUM,
+      category: 'Hardware',
+      createdById: user.id
+    }
+  });
+
+  const ticket4 = await prisma.ticket.create({
+    data: {
+      title: 'No tengo acceso a Github',
+      description: 'Dice que mi token está expirado o no tengo permisos',
+      status: TicketStatus.IN_PROGRESS,
+      priority: TicketPriority.HIGH,
+      category: 'Accesos / Permisos',
+      createdById: user.id
+    }
   });
 
   console.log('✅ Tickets created.');
