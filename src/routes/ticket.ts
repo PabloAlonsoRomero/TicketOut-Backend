@@ -13,6 +13,9 @@ router.post('/', TicketController.create);
 // Listar tickets
 router.get('/', TicketController.list);
 
+// Estadísticas para el dashboard
+router.get('/stats', TicketController.getDashboardStats);
+
 // Obtener ticket por ID
 router.get('/:id', TicketController.getById);
 
@@ -21,5 +24,8 @@ router.put('/:id', TicketController.update);
 
 // Asignar ticket
 router.patch('/:id/assign', TicketController.assign);
+
+// Agregar comentario
+router.post('/:id/comments', TicketController.addComment);
 
 export default router;
