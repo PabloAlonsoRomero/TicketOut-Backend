@@ -10,8 +10,9 @@ export class AuthService {
     password: string;
     username: string;
     name: string;
+    role?: "USER" | "ADMIN" | "SUPERUSER";
   }) {
-    const { email, password, username, name } = input;
+    const { email, password, username, name, role = "USER" } = input;
 
     const existingUser = await prisma.user.findFirst({
       where: { OR: [{ email }, { username }] },
@@ -29,7 +30,7 @@ export class AuthService {
         username,
         name,
         passwordHash,
-        role: "USER",
+        role: role as any,
       },
     });
   }
@@ -57,11 +58,21 @@ export class AuthService {
       { expiresIn: "8h" }
     );
 
+    console.log('Sending user data to client:', {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+    });
+
     return {
       token,
       user: {
         id: user.id,
         email: user.email,
+        username: user.username,
+        name: user.name,
         role: user.role,
       },
     };

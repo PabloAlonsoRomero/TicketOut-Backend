@@ -2,6 +2,7 @@ import { TicketRepository } from '../repositories/ticket.repository';
 import { CreateTicketInput, UpdateTicketInput } from '../validators/ticket.validator';
 import { PrismaClient, Role } from '@prisma/client';
 import { EventRepository } from '../repositories/event.repository';
+import { CommentRepository } from '../repositories/comment.repository';
 import { EventType } from '../models';
 
 const prisma = new PrismaClient();
@@ -54,10 +55,10 @@ export class TicketService {
 
     let tickets, total;
 
-    if (role === 'USER') {
+    if (String(role).toUpperCase() === 'USER') {
       // USERs solo ven sus tickets
-      tickets = await TicketRepository.findUserTickets(userId, skip, take);
-      total = await prisma.ticket.count({ where: { createdById: userId } });
+      tickets = await TicketRepository.findUserTickets(Number(userId), skip, take);
+      total = await prisma.ticket.count({ where: { createdById: Number(userId) } });
     } else {
       // ADMINs ven todos
       tickets = await TicketRepository.findAll(skip, take, {
@@ -91,8 +92,15 @@ export class TicketService {
       throw new Error('Ticket no encontrado');
     }
 
-    if (role !== 'ADMIN' && role !== 'SUPERUSER') {
-      throw new Error('Solo ADMINs pueden actualizar tickets');
+    if (role === 'USER' && ticket.createdById !== userId) {
+      throw new Error('No tienes permiso para actualizar este ticket');
+    }
+
+    // Restricción: Solo el creador (USER) puede modificar título y descripción
+    if (role !== 'USER' && (data.title || data.description)) {
+       // Si intenta modificar título o descripción siendo admin/superuser, lo ignoramos o lanzamos error
+       // Según el requerimiento "un administrador no puede modificar el nombre y la descripción", lanzaremos error
+       throw new Error('Los administradores no pueden modificar el título o la descripción del ticket');
     }
 
     // Verificar que al menos un campo sea diferente
@@ -194,5 +202,50 @@ export class TicketService {
     });
 
     return updated;
+  }
+
+  // Agregar comentario
+  static async addComment(
+    ticketId: number,
+    body: string,
+    isInternal: boolean,
+    userId: number,
+    role: string
+  ) {
+    const ticket = await TicketRepository.findById(ticketId);
+    if (!ticket) {
+      throw new Error('Ticket no encontrado');
+    }
+
+    // Si es nota interna, validar rol (solo ADMIN/SUPERUSER)
+    if (isInternal && role === 'USER') {
+      throw new Error('No tienes permiso para agregar notas internas');
+    }
+
+    const comment = await CommentRepository.create({
+      body,
+      isInternal,
+      ticketId,
+      authorId: userId
+    });
+
+    // Registrar evento de comentario
+    await EventRepository.create({
+      type: EventType.COMMENT_ADDED,
+      payloadJson: { isInternal },
+      ticketId,
+      actorId: userId
+    });
+
+    return comment;
+  }
+
+  static async getStats(userId: number, role: string) {
+    // Por ahora las estadísticas son globales para admins
+    // Si fuera USER, tal vez ver solo sus stats, pero dashboard suele ser para admins
+    if (role === 'USER') {
+      throw new Error('No tienes permiso para ver estadísticas globales');
+    }
+    return TicketRepository.getStats();
   }
 }
