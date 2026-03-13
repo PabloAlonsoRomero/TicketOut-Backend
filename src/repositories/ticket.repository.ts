@@ -29,8 +29,15 @@ export class TicketRepository {
       include: {
         createdBy: true,
         assignedTo: true,
-        comments: { orderBy: { createdAt: 'asc' } },
-        events: { orderBy: { createdAt: 'desc' }, take: 20 },
+        comments: { 
+          orderBy: { createdAt: 'asc' },
+          include: { author: true }
+        },
+        events: { 
+          orderBy: { createdAt: 'desc' }, 
+          take: 20,
+          include: { actor: true }
+        },
       },
     });
   }
@@ -107,5 +114,20 @@ export class TicketRepository {
     if (filters?.category) where.category = filters.category;
 
     return prisma.ticket.count({ where });
+  }
+
+  // Obtener estadísticas de tickets
+  static async getStats() {
+    const total = await prisma.ticket.count();
+    const open = await prisma.ticket.count({ where: { status: 'OPEN' } });
+    const resolved = await prisma.ticket.count({ where: { status: 'RESOLVED' } });
+    const inProgress = await prisma.ticket.count({ where: { status: 'IN_PROGRESS' } });
+
+    return {
+      total,
+      open,
+      resolved,
+      inProgress
+    };
   }
 }
