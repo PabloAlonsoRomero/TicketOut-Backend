@@ -16,6 +16,9 @@ router.get('/', TicketController.list);
 // Estadísticas para el dashboard
 router.get('/stats', TicketController.getDashboardStats);
 
+// Registro de logs (eventos) - Debe ir antes de :id
+router.get('/logs', TicketController.getLogs);
+
 // Obtener ticket por ID
 router.get('/:id', TicketController.getById);
 
