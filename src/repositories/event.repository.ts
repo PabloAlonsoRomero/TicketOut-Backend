@@ -17,4 +17,20 @@ export class EventRepository {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  static async findAll(skip: number, take: number) {
+    return prisma.ticketEvent.findMany({
+      skip,
+      take,
+      include: {
+        actor: true,
+        ticket: true
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  static async count() {
+    return prisma.ticketEvent.count();
+  }
 }
