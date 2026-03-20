@@ -248,4 +248,24 @@ export class TicketService {
     }
     return TicketRepository.getStats();
   }
+
+  static async getLogs(page: number = 1, limit: number = 50) {
+    const skip = (page - 1) * limit;
+    const take = limit;
+
+    const [events, total] = await Promise.all([
+      EventRepository.findAll(skip, take),
+      EventRepository.count(),
+    ]);
+
+    return {
+      data: events,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
 }
