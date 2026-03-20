@@ -32,7 +32,12 @@ export class TicketController {
         return res.status(401).json({ success: false, error: 'No autenticado' });
       }
 
-      const ticket = await TicketService.getTicket(parseInt(String(id)), userId, role);
+      const numericId = parseInt(String(id));
+      if (isNaN(numericId)) {
+        return res.status(400).json({ success: false, error: `ID de ticket inválido: ${id}` });
+      }
+
+      const ticket = await TicketService.getTicket(numericId, userId, role);
       res.json({ success: true, data: ticket });
     } catch (error: any) {
       const statusCode = error.message.includes('permiso') ? 403 : 404;
@@ -146,4 +151,22 @@ export class TicketController {
       res.status(statusCode).json({ success: false, error: error.message });
     }
   }
-}
+
+  static async getLogs(req: AuthRequest, res: Response) {
+    try {
+      if (req.user?.role === 'USER') {
+        return res.status(403).json({ success: false, error: 'Acceso denegado' });
+      }
+
+      const { page = '1', limit = '50' } = req.query;
+      const logs = await TicketService.getLogs(
+        parseInt(String(page)),
+        parseInt(String(limit))
+      );
+
+      res.json({ success: true, ...logs });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+}

@@ -90,7 +90,8 @@ export class TicketRepository {
         ...(data.priority && { priority: data.priority as TicketPriority }),
         ...(data.category && { category: data.category }),
         ...(data.assignedToId !== undefined && { assignedToId: data.assignedToId }),
-        ...(data.status === 'CLOSED' && { closedAt: new Date() }),
+        ...(data.status && (data.status === 'CLOSED' || data.status === 'RESOLVED') && { closedAt: new Date() }),
+        ...(data.status && (data.status !== 'CLOSED' && data.status !== 'RESOLVED') && { closedAt: null }),
       },
       include: { createdBy: true, assignedTo: true },
     });
@@ -123,11 +124,33 @@ export class TicketRepository {
     const resolved = await prisma.ticket.count({ where: { status: 'RESOLVED' } });
     const inProgress = await prisma.ticket.count({ where: { status: 'IN_PROGRESS' } });
 
+    // Cálculo de tiempo promedio de resolución en minutos
+    const closedTickets = await prisma.ticket.findMany({
+      where: {
+        closedAt: { not: null }
+      },
+      select: {
+        createdAt: true,
+        closedAt: true
+      }
+    });
+
+    let avgResolutionTimeMinutes = 0;
+    if (closedTickets.length > 0) {
+      const totalDiff = closedTickets.reduce((acc, t) => {
+        const start = new Date(t.createdAt).getTime();
+        const end = new Date(t.closedAt!).getTime();
+        return acc + (end - start);
+      }, 0);
+      avgResolutionTimeMinutes = Math.round((totalDiff / closedTickets.length) / (1000 * 60));
+    }
+
     return {
       total,
       open,
       resolved,
-      inProgress
+      inProgress,
+      avgResolutionTimeMinutes
     };
   }
 }
